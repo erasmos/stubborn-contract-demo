@@ -1,0 +1,68 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'sh.stubborn.contract' version '0.1.2' // generates producer tests from contracts
+    id 'maven-publish'
+}
+
+group = 'com.erasmos'
+version = '0.0.1-SNAPSHOT'
+description = 'catalog-service'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+// Lines up the versions of all Stubborn artifacts; keep in step with the plugin version.
+dependencyManagement {
+    imports {
+        mavenBom 'sh.stubborn:stubborn-contract-dependencies:0.1.2'
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'sh.stubborn:stubborn-contract-starter-verifier' // version comes from the BOM
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+}
+
+// The class every generated contract test extends; written in the next step. Note that
+// you'll find this under src/contractTest.
+contracts {
+    baseClassForTests = 'com.erasmos.stubborncontractdemo.catalog.ContractTestBase'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// Publishes the stubs generated from the contracts, as com.erasmos:catalog-service:<version>:stubs,
+// so consumers can run them with Stub Runner.
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact verifierStubsJar
+        }
+    }
+}
+
+// Lets other modules in this build depend on the stubs jar directly, without publishing it.
+configurations {
+    stubs {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
+
+artifacts {
+    stubs verifierStubsJar
+}

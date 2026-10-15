@@ -1,0 +1,22 @@
+# These are HTTP contracts, so a name: with spaces is fine here; the snake_case bug only affects messaging.
+name: rejects a checkout of a book that is unknown
+# bookId 999 also matches the "checks out" contract's "any number", so this one must win.
+priority: 1
+request:
+  method: POST
+  url: /loans
+  headers:
+    Content-Type: application/json
+  body:
+    bookId: 999
+    memberId: 7
+  matchers:
+    headers:
+      - key: Content-Type
+        regex: 'application/json.*'
+    body:
+      - path: $.memberId
+        type: by_regex
+        predefined: number
+response:
+  status: 422

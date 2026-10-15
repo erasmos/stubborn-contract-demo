@@ -1,0 +1,9 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'stubborn-contract-demo'
+
+include 'catalog-service'
+include 'loans-service'
+include 'notifications-service'

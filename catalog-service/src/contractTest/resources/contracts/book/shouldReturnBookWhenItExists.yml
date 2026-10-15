@@ -1,0 +1,23 @@
+name: Returns the book when it exists
+description: # Optional, for humans only (not used in tests or stubs); good for recording why a consumer needs this.
+request:
+  method: GET
+  url: /books/100              # what the producer (catalog-service) test sends
+  matchers:
+    url:
+      regex: /books/[0-9]+     # what the stub accepts
+response:
+  status: 200
+  headers:
+    Content-Type: application/json
+  body: # what the stub returns
+    id: "{{{ request.path.[1] }}}" # mirrors the requested id
+    title: Dune
+  matchers:
+    body:                      # what the producer (catalog-service) test accepts
+      - path: $.id
+        type: by_regex
+        predefined: number
+      - path: $.title
+        type: by_regex
+        predefined: non_blank

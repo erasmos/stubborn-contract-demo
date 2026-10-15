@@ -1,0 +1,64 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'sh.stubborn.contract' version '0.1.2'
+}
+
+group = 'com.erasmos'
+version = '0.0.1-SNAPSHOT'
+description = 'loans-service'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom('sh.stubborn:stubborn-contract-dependencies:0.1.2') {
+            // Stubborn 0.1.2's BOM refers to this property without defining it, which breaks spring-boot-restclient.
+            bomProperty 'spring-boot.version', '4.1.1' // keep in step with the Boot plugin
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-restclient'
+    implementation 'org.springframework.boot:spring-boot-starter-kafka'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'sh.stubborn:stubborn-contract-starter-stub-runner'
+    testImplementation 'sh.stubborn:stubborn-contract-starter-verifier'
+    // Without this, the verifier silently falls back to Spring Integration and can't find the topic.
+    testImplementation 'sh.stubborn:stubborn-contract-messaging-kafka'
+    testImplementation 'org.springframework.boot:spring-boot-starter-kafka-test' // @EmbeddedKafka
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly project(path: ':catalog-service', configuration: 'stubs')
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+contracts {
+    // Each contract folder gets its own base class in this package: contracts/http -> HttpBase, contracts/messaging -> MessagingBase.
+    packageWithBaseClasses = 'com.erasmos.stubborncontractdemo.loans'
+}
+
+// Lets other modules in this build depend on the stubs jar directly, without publishing it.
+configurations {
+    stubs {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
+
+artifacts {
+    stubs verifierStubsJar
+}

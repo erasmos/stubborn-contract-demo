@@ -1,0 +1,24 @@
+# Must be snake_case: Stubborn 0.1.2 can't find a messaging contract whose name has spaces.
+name: publishes_book_checked_out_when_a_book_is_checked_out
+# What consumers use to trigger this message from the stub (StubTrigger.trigger("book_checked_out")).
+label: book_checked_out
+input:
+  triggeredBy: checkOutBook() # a public method on ContractTestBase
+outputMessage:
+  sentTo: book-checked-out
+  body:
+    loanId: 1
+    bookId: 100
+    memberId: 7
+    borrowerId: 7 # replaces memberId, which is kept until no consumer reads it
+    checkedOutAt: "2026-10-15T10:00:00Z" # what the stub sends; the producer only has to match the regex below
+    dueDate: "2026-11-05"
+  matchers:
+    body:
+      # Any UTC instant, with or without fractional seconds (predefined iso_date_time rejects Instant's format).
+      - path: $.checkedOutAt
+        type: by_regex
+        value: '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z'
+      - path: $.dueDate
+        type: by_regex
+        predefined: iso_date # any yyyy-MM-dd; LocalDate's format, unlike Instant's, fits the predefined one

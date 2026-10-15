@@ -1,0 +1,8 @@
+name: Returns not found when the book is unknown
+priority: 1 # Otherwise, shouldReturnBookWhenItExists.yml might take it, as it matches a number.
+description: # /books/999 also matches the regex in shouldReturnBookWhenItExists.yml; don't rely on WireMock's load order to pick this one
+request:
+  method: GET
+  url: /books/999
+response:
+  status: 404

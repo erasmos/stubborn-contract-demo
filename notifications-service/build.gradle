@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.erasmos'
+version = '0.0.1-SNAPSHOT'
+description = 'notifications-service'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom('sh.stubborn:stubborn-contract-dependencies:0.1.2') {
+            // Stubborn 0.1.2's BOM refers to this property without defining it.
+            bomProperty 'spring-boot.version', '4.1.1' // keep in step with the Boot plugin
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-kafka'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-kafka-test' // @EmbeddedKafka
+    testImplementation 'sh.stubborn:stubborn-contract-starter-stub-runner'
+    // Lets Stub Runner send the stubbed messages to Kafka (needed on the consumer side too).
+    testImplementation 'sh.stubborn:stubborn-contract-messaging-kafka'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly project(path: ':loans-service', configuration: 'stubs')
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

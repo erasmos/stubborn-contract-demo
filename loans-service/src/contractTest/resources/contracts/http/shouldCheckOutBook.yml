@@ -1,0 +1,37 @@
+# These are HTTP contracts, so a name: with spaces is fine here; the snake_case bug only affects messaging.
+name: checks out a book that exists
+# For clients we don't control: the assumptions behind this contract, and an invitation to change them.
+# The description will be included in the stubs jar.
+description: |
+  Written by the loans team for clients we don't control. Assumptions:
+  - bookId and memberId are numbers (the stub accepts any).
+  - The response is the new loan's id; the stub always answers loanId 1.
+  - Unknown books are rejected with 422 (stub: bookId 999).
+  If these don't fit how you call us, tell us and we'll change the contract.
+request:
+  method: POST
+  url: /loans
+  headers:
+    Content-Type: application/json
+  body:
+    bookId: 100
+    memberId: 7
+  # The values above are what the producer test sends; the stub accepts anything matching these.
+  matchers:
+    headers:
+      - key: Content-Type
+        regex: 'application/json.*' # also accepts "; charset=UTF-8"
+    body:
+      - path: $.bookId
+        type: by_regex
+        predefined: number
+      - path: $.memberId
+        type: by_regex
+        predefined: number
+response:
+  status: 201
+  headers:
+    Location: /loans/1
+    Content-Type: application/json
+  body:
+    loanId: 1
